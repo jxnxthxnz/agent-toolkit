@@ -2,6 +2,7 @@ import { config } from "@dotenvx/dotenvx";
 import OpenAI from "openai";
 import { PayPalAgentToolkit, ALL_TOOLS_ENABLED } from "@paypal/agent-toolkit/openai";
 import type {ChatCompletionMessageParam} from "openai/resources";
+import { Agent, run } from '@openai/agents'; 
 
 const envFilePath = process.env.ENV_FILE_PATH || ".env";
 config({path: envFilePath});
@@ -17,6 +18,21 @@ const ppConfig = {
 }
 
 const paypalToolkit = new PayPalAgentToolkit(ppConfig);
+
+const agent = new Agent({
+    name: "user", 
+    instructions: "You are a PayPal assistant to help out with payments and transactions",
+    model: "gpt-4o",
+    tools: paypalToolkit.getAgentTools(),
+});
+
+(async (): Promise<void> => {
+    const result = await run(
+        agent,
+        "Create an PayPal order for $50 for Premium News service"
+    );
+    console.log(result);
+})();
 
 (async (): Promise<void> => {
     let messages: ChatCompletionMessageParam[] = [
